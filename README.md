@@ -166,13 +166,6 @@ composer install --no-dev
 
 欢迎提交 Issue 和 Pull Request！
 
-## 📞 支持
-
-如有问题，请通过以下方式联系：
-
-- 提交 [GitHub Issue](https://github.com/yourusername/RiverXILee-AI/issues)
-- 发送邮件到: your-email@example.com
-
 ## 🙏 致谢
 
 - **xAI** - 提供强大的 AI 模型
