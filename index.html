@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>RiverXILee-AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" id="hljs-light">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-dark">
+    <!-- 升级 pdf.js 到最新版 (2025 兼容) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+    <!-- Axios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <style>
+        /* CSS 变量：定义浅色/深色主题（美化：增强渐变和颜色） */
+        :root {
+            --bg-gradient-light: linear-gradient(135deg, rgba(20, 20, 30, 0.1), rgba(40, 40, 60, 0.1));
+            --bg-gradient-dark: linear-gradient(135deg, rgba(20, 20, 30, 0.9), rgba(40, 40, 60, 0.9));
+            --card-bg-light: rgba(255, 255, 255, 0.15);
+            --card-bg-dark: rgba(20, 20, 30, 0.8);
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --accent-pink: #FF69B4;
+            --accent-pink-light: #f472b6;
+            --bubble-user-light: #FF69B4;
+            --bubble-ai-light: rgba(255, 255, 255, 0.8);
+            --bubble-user-dark: #f472b6;
+            --bubble-ai-dark: rgba(40, 40, 60, 0.9);
+            --border-light: rgba(255, 255, 255, 0.15);
+            --border-dark: rgba(255, 255, 255, 0.1);
+            --shadow-light: 0 8px 30px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.05);
+            --shadow-dark: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.2);
+            /* 代码块优化变量 */
+            --code-bg-light: #f6f8fa;
+            --code-border-light: #e1e4e8;
+            --code-text-light: #24292e;
+            --code-bg-dark: #0d1117;
+            --code-border-dark: #30363d;
+            --code-text-dark: #c9d1d9;
+            /* 移动端优化变量 */
+            --mobile-padding: 12px;
+            --mobile-button-size: 52px; /* 至少44px for touch */
+            --mobile-font-size: 16px; /* 最小16px for readability */
+        }
+        [data-theme="dark"] {
+            --bg-gradient-light: var(--bg-gradient-dark);
+            --card-bg-light: var(--card-bg-dark);
+            --text-primary: #ffffff;
+            --text-secondary: #dddddd;
+            --bubble-ai-light: var(--bubble-ai-dark);
+            --border-light: var(--border-dark);
+            --shadow-light: var(--shadow-dark);
+        }
+        /* 整体样式：美化 - 增强渐变、动画和间距 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); } /* 微调脉冲 */
+            100% { transform: scale(1); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); } /* 减小弹跳 */
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-bar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes typingDots {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+        /* 美化：粉色粒子动画、按钮波纹效果 */
+        @keyframes sparkle {
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+            100% { opacity: 0; transform: scale(0) rotate(360deg); }
+        }
+        .sparkle-effect {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-pink);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 1s ease-out forwards;
+        }
+        /* 波纹效果 */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple-animation 0.6s linear;
+        }
+        @keyframes ripple-animation {
+            to {
+                transform: translate(-50%, -50%) scale(4);
+                opacity: 0;
+            }
+        }
+        /* 美化：浮动粒子背景、按钮闪烁 */
+        @keyframes floatParticle {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+            100% { transform: translateY(0) rotate(360deg); opacity: 0.5; }
+        }
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: var(--accent-pink-light);
+            border-radius: 50%;
+            animation: floatParticle 5s infinite ease-in-out;
+            pointer-events: none;
+        }
+        /* 鼠标交互动画：消息泡悬停（缩放+旋转+阴影） */
+        @keyframes bubbleHover {
+            0% { transform: scale(1) rotate(0deg); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            50% { transform: scale(1.02) rotate(2deg); box-shadow: 0 4px 8px rgba(255,105,180,0.3); }
+            100% { transform: scale(1) rotate(0deg); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        }
+        /* 输入框焦点发光脉冲 */
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--accent-pink); }
+            50% { box-shadow: 0 0 20px var(--accent-pink), 0 0 30px var(--accent-pink-light); }
+            100% { box-shadow: 0 0 5px var(--accent-pink); }
+        }
+        /* 鼠标尾迹粒子 */
+        @keyframes mouseTrail {
+            0% { opacity: 1; transform: scale(1) translate(0, 0); }
+            100% { opacity: 0; transform: scale(0.5) translate(20px, -20px); }
+        }
+        .mouse-trail {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-pink);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            animation: mouseTrail 0.8s ease-out forwards;
+        }
+        /* 背景图样式（美化：添加加载动画和 fallback） */
+        body {
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-primary);
+            transition: background 0.5s ease; /* 延长过渡 */
+            background-color: #f0f0f0; /* fallback 背景色 */
+            user-select: none; /* 禁用文本选择 */
+            position: relative; /* 为粒子准备 */
+            -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+            touch-action: manipulation; /* 优化触摸响应 */
+        }
+        /* 美化：添加粒子背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(2px 2px at 20px 30px, #FF69B4, transparent),
+                              radial-gradient(2px 2px at 40px 70px, rgba(255,105,180,0.8), transparent),
+                              radial-gradient(1px 1px at 90px 40px, #f472b6, transparent),
+                              radial-gradient(1px 1px at 130px 80px, rgba(255,105,180,0.6), transparent),
+                              radial-gradient(2px 2px at 160px 30px, #FF69B4, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: floatParticle 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        [data-theme="dark"] body::before {
+            opacity: 0.5;
+        }
+        /* 深色主题下调整背景图叠加 */
+        [data-theme="dark"] body {
+            background-color: #1a1a2e; /* 深色 fallback */
+        }
+        /* 登录界面样式（美化：增加间距） */
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            background: transparent; /* 继承 body 背景 */
+            transition: all 0.3s ease;
+        }
+        .login-card {
+            background: var(--card-bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            box-shadow: var(--shadow-light);
+            padding: 40px 30px; /* 增加水平间距 */
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            backdrop-filter: blur(10px); /* 毛玻璃效果，增强背景融合 */
+            margin: 20px; /* 增加外边距 */
+        }
+        [data-theme="dark"] .login-card {
+            background: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        .login-header {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            box-sizing: border-box; /* 防止溢出 */
+        }
+        [data-theme="dark"] .login-input {
+            background: rgba(40, 40, 60, 0.8);
+            color: var(--text-primary);
+            border-color: var(--border-dark);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .login-btn:hover {
+            background: var(--accent-pink-light);
+            transform: scale(1.05);
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px; /* 调整位置避免重叠 */
+            left: 20px;
+            padding: 8px 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .logout-btn:hover {
+            background: var(--accent-pink-light);
+            transform: scale(1.05);
+        }
+        .app-container {
+            display: none; /* 默认隐藏，登录后显示 */
+            flex: 1;
+            width: 100%;
+            max-width: 1750px; /* 增大最大宽度，适配大屏 */
+            height: 95vh; /* 增大高度，占满屏幕 */
+            background: var(--card-bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px); /* 轻微毛玻璃，融合背景 */
+            position: relative; /* 为侧边栏定位准备 */
+            margin: 10px; /* 增加外边距 */
+        }
+        [data-theme="dark"] .app-container {
+            background: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        .history-sidebar {
+            width: 280px; /* 稍增大侧边栏宽度 */
+            background: rgba(255, 255, 255, 0.1); /* 半透明白色，继承背景 */
+            border-right: 1px solid var(--border-light);
+            padding: 20px;
+            overflow-y: auto;
+            animation: slideIn 0.5s ease-out;
+            transition: background 0.3s ease, border-right 0.3s ease, transform 0.3s ease; /* 添加 transform 过渡 */
+            /* 隐藏滚动条，跨浏览器兼容 */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            box-sizing: border-box; /* 防止溢出 */
+        }
+        .history-sidebar::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        [data-theme="dark"] .history-sidebar {
+            background: rgba(40, 40, 60, 0.3);
+        }
+        /* 侧边栏导入导出按钮样式 */
+        .sidebar-import-export-btn {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        .sidebar-import-export-btn:hover {
+            background: var(--accent-pink-light);
+            transform: scale(1.02);
+        }
+        /* 移动端侧边栏抽屉样式 */
+        .history-sidebar.mobile {
+            position: fixed;
+            top: 0;
+            left: -280px; /* 默认隐藏在左侧 */
+            width: 280px;
+            height: 100vh;
+            z-index: 1001;
+            border-right: none;
+            border-radius: 0 15px 15px 0;
+            transition: left 0.3s ease;
+            box-shadow: var(--shadow-light); /* 美化：添加阴影 */
+        }
+        .history-sidebar.mobile.open {
+            left: 0; /* 滑出显示 */
+        }
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: color 0.3s ease;
+            gap: 10px; /* 增加间距避免重叠 */
+        }
+        .new-chat-btn {
+            padding: 8px 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: transform 0.3s, background 0.3s ease;
+            flex-shrink: 0; /* 防止压缩 */
+        }
+        .new-chat-btn:hover {
+            transform: scale(1.05);
+            background: var(--accent-pink-light);
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            outline: none;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] .search-input {
+            background: rgba(40, 40, 60, 0.8);
+            color: var(--text-primary);
+        }
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            font-size: 12px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            word-break: break-word; /* 强制长词换行 */
+            white-space: normal; /* 允许正常换行 */
+            overflow-wrap: break-word; /* 兼容性换行 */
+            max-width: 100%; /* 确保不溢出 */
+            gap: 10px; /* 美化：增加间距 */
+        }
+        [data-theme="dark"] .history-item {
+            background: rgba(40, 40, 60, 0.5);
+            color: var(--text-primary);
+        }
+        .history-item:hover, .history-item.active {
+            background: var(--accent-pink);
+            color: white;
+            transform: scale(1.02);
+            animation: bounce 0.1s ease-out; /* 新增：悬停时弹跳 */
+        }
+        .history-item .title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            word-break: break-word; /* 标题换行 */
+            white-space: normal;
+            overflow-wrap: break-word;
+            line-height: 1.3; /* 微调行高 */
+            flex: 1; /* 美化：自适应宽度 */
+        }
+        .history-item .preview {
+            font-size: 10px;
+            opacity: 0.8;
+            word-break: break-word; /* 预览换行 */
+            white-space: normal;
+            overflow-wrap: break-word;
+            line-height: 1.2;
+            flex: 1;
+        }
+        .delete-btn {
+            background: rgba(255, 0, 0, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease, background 0.3s ease;
+            margin-left: 5px;
+            flex-shrink: 0; /* 防止按钮被挤压 */
+        }
+        .history-item:hover .delete-btn {
+            opacity: 1;
+        }
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 0.5);
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            transition: padding 0.3s ease;
+            background: rgba(255, 255, 255, 0.05); /* 轻微背景，融合整体 */
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] .chat-container {
+            background: rgba(40, 40, 60, 0.2);
+        }
+        .header {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            text-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* 增加间距避免重叠 */
+            transition: color 0.3s ease;
+            position: relative; /* 为移动端汉堡菜单定位 */
+            flex-wrap: wrap; /* 允许换行 */
+            padding: 0 20px; /* 美化：增加侧边距 */
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] .header {
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        .header span {
+            display: inline-block;
+            animation: pulse 2s infinite;
+            font-size: 32px;
+        }
+        /* 移动端汉堡菜单按钮 */
+        .hamburger-menu {
+            display: none; /* 默认隐藏，移动端显示 */
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 1002;
+        }
+        .hamburger-menu:hover {
+            background: var(--accent-pink-light);
+            transform: translateY(-50%) scale(1.1);
+        }
+        /* 模型选择器样式（美化：缩小尺寸避免重叠） */
+        .model-selector {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            min-width: 140px; /* 固定宽度避免重叠 */
+        }
+        [data-theme="dark"] .model-selector {
+            background: rgba(40, 40, 60, 0.8);
+            color: var(--text-primary);
+            border-color: var(--border-dark);
+        }
+        .model-selector:focus {
+            box-shadow: 0 0 10px var(--accent-pink);
+        }
+        /* 模型和文件上传容器（移到输入区域下面） */
+        .bottom-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            gap: 10px;
+        }
+        [data-theme="dark"] .bottom-controls {
+            background: rgba(40, 40, 60, 0.3);
+        }
+        .model-upload-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .theme-toggle {
+            position: absolute;
+            top: 20px; /* 调整位置 */
+            right: 20px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.3s ease, transform 0.3s;
+            box-shadow: 0 2px 10px rgba(255, 105, 180, 0.3);
+            z-index: 10;
+        }
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+            background: var(--accent-pink-light);
+        }
+        /* Token 状态（调整位置避免重叠） */
+        .token-status {
+            position: absolute;
+            top: 20px;
+            right: 90px; /* 调整右边距 */
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+            white-space: nowrap; /* 防止换行重叠 */
+        }
+        [data-theme="dark"] .token-status {
+            background: rgba(40, 40, 60, 0.5);
+        }
+        .messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+            /* 隐藏滚动条，跨浏览器兼容 */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        .messages::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        [data-theme="dark"] .messages {
+            background: rgba(40, 40, 60, 0.5);
+        }
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+            position: relative;
+            gap: 10px; /* 美化：增加间距 */
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message.ai {
+            justify-content: flex-start;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            line-height: 1.5;
+            cursor: pointer; /* 增强互动感 */
+            position: relative; /* 美化：为动画准备 */
+        }
+        .message-bubble:hover {
+            animation: bubbleHover 0.4s ease-in-out; /* 新增：悬停动画 */
+        }
+        .message.user .message-bubble {
+            background: var(--bubble-user-light);
+            color: white;
+        }
+        [data-theme="dark"] .message.user .message-bubble {
+            background: var(--bubble-user-dark);
+        }
+        .message.ai .message-bubble {
+            background: var(--bubble-ai-light);
+            color: var(--text-secondary);
+        }
+        /* 实时生成时的提示样式 */
+        .message-bubble.typing {
+            position: relative;
+            background: var(--bubble-ai-light);
+            color: var(--text-secondary);
+        }
+        .message-bubble.typing::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typingDots 1.2s infinite;
+            bottom: 8px;
+            right: 8px;
+        }
+        .thinking-text {
+            font-style: italic;
+            opacity: 0.8;
+        }
+        /* 上传图片/文件显示样式 */
+        .uploaded-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: block;
+        }
+        .uploaded-file {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            word-break: break-word;
+        }
+        [data-theme="dark"] .uploaded-file {
+            background: rgba(40, 40, 60, 0.5);
+        }
+        /* 文件管理按钮样式 */
+        .file-manage-btn {
+            padding: 8px 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        .file-manage-btn:hover {
+            background: var(--accent-pink-light);
+            transform: scale(1.05);
+        }
+        /* 文件模态对话框样式，与本体UI一致 */
+        .file-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        .file-modal-content {
+            background: var(--card-bg-light);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-light);
+            animation: fadeIn 0.3s ease;
+        }
+        [data-theme="dark"] .file-modal-content {
+            background: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        .file-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            gap: 10px;
+        }
+        .file-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            gap: 10px;
+        }
+        [data-theme="dark"] .file-item {
+            background: rgba(40, 40, 60, 0.5);
+            color: var(--text-primary);
+        }
+        .file-item:hover {
+            background: var(--accent-pink);
+            color: white;
+        }
+        .file-delete {
+            background: rgba(255, 0, 0, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .file-delete:hover {
+            background: rgba(255, 0, 0, 0.5);
+        }
+        /* 代码块和内联代码样式优化：加强换行（核心修复：强制所有长行断行） */
+        .message-bubble code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: var(--accent-pink);
+            font-size: 0.9em;
+            word-break: break-all !important; /* 内联代码强制断词 */
+        }
+        [data-theme="dark"] .message-bubble code {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--accent-pink-light);
+        }
+        .message-bubble pre {
+            background: var(--code-bg-light) !important;
+            border: 1px solid var(--code-border-light) !important;
+            color: var(--code-text-light) !important;
+            padding: 16px !important;
+            border-radius: 8px !important;
+            overflow-x: auto !important; /* 允许水平滚动，但优先换行 */
+            white-space: pre-wrap !important; /* 保留空格，但允许换行 */
+            word-break: break-word !important; /* 强制长单词换行 */
+            word-wrap: break-word !important; /* 兼容旧浏览器 */
+            overflow-wrap: break-word !important; /* 核心：强制单词内断行，兼容性更好 */
+            line-break: anywhere !important; /* 新增：额外换行兼容 */
+            margin: 12px 0 !important;
+            font-size: 0.9em !important;
+        }
+        [data-theme="dark"] .message-bubble pre {
+            background: var(--code-bg-dark) !important;
+            border-color: var(--code-border-dark) !important;
+            color: var(--code-text-dark) !important;
+        }
+        /* 输入区域样式（美化：增加间距） */
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            margin-top: 10px;
+        }
+        .user-input-container {
+            flex: 1;
+            position: relative;
+        }
+        #userInput {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-primary);
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] #userInput {
+            background: rgba(40, 40, 60, 0.8);
+            color: var(--text-primary);
+            border-color: var(--border-dark);
+        }
+        #userInput:focus {
+            box-shadow: 0 0 10px var(--accent-pink);
+            animation: glow 1.5s infinite;
+        }
+        .send-btn {
+            padding: 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .send-btn:hover {
+            background: var(--accent-pink-light);
+            transform: scale(1.1);
+        }
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .stop-btn {
+            padding: 12px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .stop-btn:hover {
+            background: #ff3838;
+            transform: scale(1.1);
+        }
+        /* 消息操作按钮样式 */
+        .message-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+            justify-content: flex-end;
+        }
+        .message-action-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .message-action-btn:hover {
+            background: var(--accent-pink);
+            color: white;
+            transform: scale(1.1);
+        }
+        /* 编辑消息区域样式 */
+        .message-edit-area {
+            margin-top: 10px;
+        }
+        .message-edit-textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 60px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] .message-edit-textarea {
+            background: rgba(40, 40, 60, 0.8);
+            color: var(--text-primary);
+            border-color: var(--border-dark);
+        }
+        .edit-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .edit-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .edit-save {
+            background: var(--accent-pink);
+            color: white;
+        }
+        .edit-save:hover {
+            background: var(--accent-pink-light);
+        }
+        .edit-cancel {
+            background: #ccc;
+            color: #333;
+        }
+        .edit-cancel:hover {
+            background: #bbb;
+        }
+        /* 导入/导出模态样式 */
+        .import-export-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        .import-export-modal-content {
+            background: var(--card-bg-light);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: var(--shadow-light);
+            animation: fadeIn 0.3s ease;
+        }
+        [data-theme="dark"] .import-export-modal-content {
+            background: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            box-shadow: var(--shadow-dark);
+        }
+        .import-export-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            gap: 10px;
+        }
+        .import-export-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .import-export-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 5px; /* 美化：间距 */
+        }
+        .import-export-tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .import-export-tab.active {
+            background: var(--accent-pink);
+            color: white;
+        }
+        [data-theme="dark"] .import-export-tab {
+            background: rgba(40, 40, 60, 0.5);
+        }
+        .export-tab, .import-tab {
+            display: none;
+        }
+        .export-tab.active, .import-tab.active {
+            display: block;
+        }
+        #exportBtn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        #exportBtn:hover {
+            background: var(--accent-pink-light);
+        }
+        #importFileInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] #importFileInput {
+            background: rgba(40, 40, 60, 0.8);
+            color: var(--text-primary);
+        }
+        #importBtn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        #importBtn:hover:not(:disabled) {
+            background: var(--accent-pink-light);
+        }
+        #importBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        /* 导入/导出搜索结果样式 */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+        [data-theme="dark"] .search-results {
+            background: rgba(40, 40, 60, 0.9);
+        }
+        .search-result-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease;
+        }
+        .search-result-item:hover {
+            background: var(--accent-pink);
+            color: white;
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        /* 文件上传按钮样式 */
+        .file-upload-btn {
+            padding: 8px 12px;
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .file-upload-btn:hover {
+            background: var(--accent-pink-light);
+            transform: scale(1.05);
+        }
+        #fileInput {
+            display: none;
+        }
+        /* 新增：背景淡入动画 */
+        @keyframes bgFadeIn {
+            0% { opacity: 0; } /* 从透明开始 */
+            100% { opacity: 1; } /* 渐显 */
+        }
+        .bg-fade-in {
+            animation: bgFadeIn 1s ease-in-out forwards; /* 1s 淡入，覆盖整个 body */
+        }
+        /* 确保 body 支持动画 */
+        body {
+            /* ... 现有样式 ... */
+            opacity: 1; /* 初始不透明 */
+        }
+        /* 移动端响应式（全面重做：基于2025最佳实践） */
+        @media (max-width: 768px) {
+            /* 整体布局：全屏、无边距 */
+            .app-container {
+                flex-direction: column;
+                height: 100vh;
+                max-width: none;
+                margin: 0;
+                border-radius: 0; /* 移除圆角，全屏 */
+                border: none; /* 移除边框 */
+                box-shadow: none; /* 移除阴影，节省性能 */
+            }
+            /* 侧边栏：优化抽屉式，增加手势支持 */
+            .history-sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-light);
+                padding: var(--mobile-padding);
+                transform: translateX(-100%); /* 默认隐藏 */
+                transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 平滑贝塞尔曲线 */
+            }
+            .history-sidebar.mobile {
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                transform: translateX(-100%); /* 统一隐藏 */
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3); /* 轻微阴影 */
+            }
+            .history-sidebar.mobile.open {
+                transform: translateX(0); /* 滑出 */
+            }
+            /* 侧边栏内部：增大字体、间距 */
+            .history-header {
+                font-size: var(--mobile-font-size);
+                gap: 8px;
+            }
+            .new-chat-btn, .sidebar-import-export-btn {
+                padding: 12px;
+                font-size: var(--mobile-font-size);
+                min-height: var(--mobile-button-size);
+                border-radius: 8px;
+            }
+            .search-input {
+                font-size: var(--mobile-font-size);
+                padding: 12px;
+                border-radius: 8px;
+            }
+            .history-item {
+                padding: var(--mobile-padding);
+                font-size: var(--mobile-font-size);
+                gap: 8px;
+                border-radius: 8px;
+            }
+            .history-item .title {
+                font-size: var(--mobile-font-size);
+            }
+            .history-item .preview {
+                font-size: 14px; /* 增大预览字体 */
+            }
+            .delete-btn {
+                width: var(--mobile-button-size);
+                height: var(--mobile-button-size);
+                min-width: var(--mobile-button-size); /* 触摸友好 */
+                border-radius: 50%;
+                font-size: 16px;
+            }
+            /* 汉堡菜单：增大、固定位置 */
+            .hamburger-menu {
+                display: block;
+                width: var(--mobile-button-size);
+                height: var(--mobile-button-size);
+                font-size: var(--mobile-font-size);
+                border-radius: 50%;
+                min-width: var(--mobile-button-size);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2); /* 轻微阴影 */
+            }
+            /* 聊天容器：减少内边距，优化滚动 */
+            .chat-container {
+                padding: var(--mobile-padding);
+                height: 100vh; /* 全高 */
+                display: flex;
+                flex-direction: column;
+            }
+            .header {
+                font-size: 20px; /* 减小标题 */
+                gap: 5px;
+                padding: 0 var(--mobile-padding);
+                justify-content: space-between; /* 均匀分布 */
+                position: sticky;
+                top: 0;
+                background: var(--card-bg-light);
+                z-index: 100;
+                border-bottom: 1px solid var(--border-light);
+                margin: 0;
+                margin-bottom: 10px;
+            }
+            [data-theme="dark"] .header {
+                background: var(--card-bg-dark);
+                border-bottom-color: var(--border-dark);
+            }
+            .token-status {
+                right: auto;
+                left: 70px; /* 调整位置，避免重叠 */
+                top: 15px;
+                font-size: var(--mobile-font-size);
+                padding: 6px 10px;
+                white-space: normal; /* 允许换行 */
+                text-align: center;
+            }
+            .theme-toggle, .file-manage-btn, .logout-btn {
+                top: 15px;
+                width: var(--mobile-button-size);
+                height: var(--mobile-button-size);
+                font-size: var(--mobile-font-size);
+                border-radius: 50%;
+                min-width: var(--mobile-button-size);
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .theme-toggle {
+                right: 15px;
+            }
+            .file-manage-btn {
+                right: 70px; /* 堆叠按钮 */
+            }
+            .logout-btn {
+                left: 15px;
+            }
+            /* 消息区域：优化泡泡、滚动 */
+            .messages {
+                padding: var(--mobile-padding);
+                margin-bottom: 10px;
+                border-radius: 0; /* 全宽 */
+                flex: 1;
+                min-height: 0; /* 允许收缩 */
+                -webkit-overflow-scrolling: touch; /* iOS 平滑 */
+            }
+            .message-bubble {
+                max-width: 85%; /* 增大泡泡适应小屏 */
+                padding: 12px 16px;
+                font-size: var(--mobile-font-size);
+                line-height: 1.4; /* 优化行高 */
+                word-break: break-word;
+            }
+            .message-actions .message-action-btn {
+                width: var(--mobile-button-size);
+                height: var(--mobile-button-size);
+                min-width: var(--mobile-button-size);
+                font-size: var(--mobile-font-size);
+            }
+            /* 输入容器：全宽、键盘友好 */
+            .input-container {
+                gap: 8px;
+                padding: 0 var(--mobile-padding);
+                position: sticky;
+                bottom: 0;
+                background: var(--card-bg-light);
+                border-top: 1px solid var(--border-light);
+                z-index: 100;
+            }
+            [data-theme="dark"] .input-container {
+                background: var(--card-bg-dark);
+                border-top-color: var(--border-dark);
+            }
+            #userInput {
+                min-height: 52px; /* 增大输入框 */
+                font-size: var(--mobile-font-size);
+                resize: vertical;
+                max-height: 150px; /* 限制最大高 */
+            }
+            .send-btn, .stop-btn {
+                width: var(--mobile-button-size);
+                height: var(--mobile-button-size);
+                min-width: var(--mobile-button-size);
+                font-size: var(--mobile-font-size);
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            /* 底部控件：垂直堆叠、全宽 */
+            .bottom-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: var(--mobile-padding);
+                background: none;
+                border-radius: 0;
+            }
+            .model-upload-group {
+                justify-content: space-between;
+                gap: 8px;
+            }
+            .model-selector {
+                font-size: var(--mobile-font-size);
+                padding: 12px;
+                min-width: auto;
+                flex: 1;
+            }
+            .file-upload-btn {
+                width: var(--mobile-button-size);
+                height: var(--mobile-button-size);
+                min-width: var(--mobile-button-size);
+                padding: 0;
+                border-radius: 50%;
+                font-size: var(--mobile-font-size);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            /* 模态：全屏适配 */
+            .file-modal-content, .import-export-modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 90vh;
+                border-radius: 12px;
+            }
+            .file-item, .import-export-tab {
+                font-size: var(--mobile-font-size);
+                padding: 12px;
+            }
+            /* 动画优化：减少复杂动画，节省电池 */
+            @keyframes bubbleHover {
+                0% { transform: none; } /* 禁用移动端悬停动画 */
+                100% { transform: none; }
+            }
+            .message-bubble:hover {
+                animation: none; /* 禁用动画 */
+            }
+            /* 性能：禁用不必要过渡 */
+            * {
+                will-change: auto; /* 避免过度使用GPU加速 */
+            }
+            /* 无障碍：高对比、ARIA */
+            button, input, select {
+                border: 2px solid var(--border-light); /* 增大边框，便于焦点 */
+            }
+            [data-theme="dark"] button, [data-theme="dark"] input, [data-theme="dark"] select {
+                border-color: var(--border-dark);
+            }
+            /* 添加焦点样式 */
+            button:focus, input:focus, select:focus {
+                outline: 2px solid var(--accent-pink);
+                outline-offset: 2px;
+            }
+        }
+        /* 超小屏优化 (e.g., iPhone SE) */
+        @media (max-width: 480px) {
+            :root {
+                --mobile-padding: 8px;
+                --mobile-button-size: 48px;
+                --mobile-font-size: 16px;
+            }
+            .header {
+                font-size: 18px;
+                gap: 4px;
+            }
+            .message-bubble {
+                max-width: 90%;
+                padding: 10px 12px;
+            }
+            #userInput {
+                padding: 10px 12px;
+            }
+        }
+        /* 横屏优化 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .app-container {
+                height: 100vh;
+            }
+            .messages {
+                padding: 8px;
+            }
+            .input-container {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" data-theme="light">
+    <!-- 登录界面 -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-card">
+            <h1 class="login-header">RiverXILee-AI</h1>
+            <p>欢迎使用 xAI 驱动的智能聊天助手！</p>
+            <input type="text" class="login-input" id="usernameInput" placeholder="请输入用户名" maxlength="20">
+            <button class="login-btn" onclick="login()">登录</button>
+        </div>
+    </div>
+    <!-- 主应用容器 -->
+    <div class="app-container" id="appContainer">
+        <!-- 侧边栏：历史对话 -->
+        <div class="history-sidebar" id="historySidebar">
+            <div class="history-header">
+                <h3>历史对话</h3>
+                <button class="new-chat-btn" onclick="newConversation()">+ 新对话</button>
+            </div>
+            <button class="sidebar-import-export-btn" onclick="openImportExportModal()" title="导入/导出">💾 导入/导出对话</button>
+            <input type="text" class="search-input" id="historySearch" placeholder="搜索对话..." oninput="searchHistory()">
+            <div class="search-results" id="searchResults"></div>
+            <ul class="history-list" id="historyList"></ul>
+        </div>
+        <!-- 聊天区域 -->
+        <div class="chat-container">
+            <div class="header">
+                <button class="hamburger-menu" id="hamburgerMenu" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+                <span>🤖</span>
+                <span>RiverXILee-AI</span>
+                <div class="token-status" id="tokenStatus" aria-live="polite">Tokens: 0</div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="切换主题" aria-label="Toggle theme">🌙</button>
+                <button class="file-manage-btn" onclick="openFileModal()" title="文件管理" aria-label="File manager">📁</button>
+                <button class="logout-btn" onclick="logout()" title="登出" aria-label="Logout">退出</button>
+            </div>
+            <div class="messages" id="messagesContainer" role="log" aria-label="Chat messages"></div>
+            <div class="input-container">
+                <div class="user-input-container">
+                    <textarea id="userInput" placeholder="输入消息，按 Enter 发送，Shift+Enter 换行...（实时联网已默认开启）" onkeydown="handleKeyPress(event)" rows="1" aria-label="Message input"></textarea>
+                </div>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Send message">➤</button>
+                <button class="stop-btn" id="stopBtn" onclick="stopGeneration()" aria-label="Stop generation">⏹️</button>
+            </div>
+            <!-- 移到下面的模型选择和文件上传 -->
+            <div class="bottom-controls">
+                <div class="model-upload-group">
+                    <!-- 模型选择器 -->
+                    <select class="model-selector" id="modelSelector" onchange="changeModel(this.value)" aria-label="Select model">
+                        <option value="grok-3">Grok-3 (默认)</option>
+                        <option value="grok-4">Grok-4 (高级)</option>
+                        <option value="grok-3-mini">Grok-3 Mini (快速)</option>
+                        <option value="grok-beta">Grok Beta (兼容)</option>
+                    </select>
+                    <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()" title="上传文件" aria-label="Upload file">📎</button>
+                    <input type="file" id="fileInput" multiple accept="image/*,.txt,.pdf,.c,.cpp,.java,.py,.html,.css,.js,.php,.rb,.swift" onchange="handleFileUpload(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 文件管理模态 -->
+    <div class="file-modal" id="fileModal" role="dialog" aria-modal="true" aria-labelledby="fileModalHeader">
+        <div class="file-modal-content">
+            <div class="file-modal-header">
+                <h3 id="fileModalHeader">文件管理</h3>
+                <button class="file-modal-close" onclick="closeFileModal()" aria-label="Close modal">×</button>
+            </div>
+            <ul class="file-list" id="fileList"></ul>
+        </div>
+    </div>
+    <!-- 导入/导出模态 -->
+    <div class="import-export-modal" id="importExportModal" role="dialog" aria-modal="true" aria-labelledby="importExportHeader">
+        <div class="import-export-modal-content">
+            <div class="import-export-header">
+                <h3 id="importExportHeader">导入/导出对话</h3>
+                <button class="import-export-close" onclick="closeImportExportModal()" aria-label="Close modal">×</button>
+            </div>
+            <div class="import-export-tabs">
+                <button class="import-export-tab active" onclick="switchImportExportTab('export')">导出</button>
+                <button class="import-export-tab" onclick="switchImportExportTab('import')">导入</button>
+            </div>
+            <div class="export-tab active" id="exportTab">
+                <p>导出所有对话为 JSON 文件。</p>
+                <button id="exportBtn" onclick="exportConversations()">导出对话</button>
+            </div>
+            <div class="import-tab" id="importTab">
+                <p>选择 JSON 文件导入对话（将覆盖当前数据）。</p>
+                <input type="file" id="importFileInput" accept=".json" onchange="handleImportFile(event)">
+                <button id="importBtn" onclick="importConversations()" disabled>导入对话</button>
+            </div>
+        </div>
+    </div>
+    <!-- 加载指示器 -->
+    <div id="loading" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;" role="status" aria-live="polite">
+        <div style="text-align: center;">
+            <div style="font-size: 24px; margin-bottom: 10px;">🤔</div>
+            <p>Thinking about the user's request...</p>
+        </div>
+    </div>
+    <script>
+        // xAI API 配置（安全版：移到 PHP 代理，无前端 Key）
+        const API_URL = '/api/proxy.php';  // 走 PHP 代理，Key 在后端
+        const X_BEARER_TOKEN = process.env.X_API_TOKEN; // 使用环境变量
+        let currentModel = 'grok-3';
+        // 工具定义（保持原样，web_search 优化）
+        const tools = [
+            {
+                type: "function",
+                function: {
+                    name: "web_search",
+                    description: "Search the current web for real-time information, news, facts, or any up-to-date data. Use this tool for queries requiring information beyond your training cutoff.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            query: {
+                                type: "string",
+                                description: "The precise search query to use for web search."
+                            },
+                            num_results: {
+                                type: "integer",
+                                description: "The number of results to return. Optional, default 10, max 30."
+                            }
+                        },
+                        required: ["query"]
+                    }
+                }
+            },
+            {
+                type: "function",
+                function: {
+                    name: "x_keyword_search",
+                    description: "Advanced search tool for X Posts. Supports advanced operators like keywords, from:user, since:YYYY-MM-DD, etc.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            query: {
+                                type: "string",
+                                description: "The search query string for X advanced search."
+                            },
+                            limit: {
+                                type: "integer",
+                                description: "The number of posts to return. Optional, default 10."
+                            },
+                            mode: {
+                                type: "string",
+                                description: "Sort by Top or Latest. Optional, default Top."
+                            }
+                        },
+                        required: ["query"]
+                    }
+                }
+            },
+            {
+                type: "function",
+                function: {
+                    name: "x_semantic_search",
+                    description: "Fetch X posts that are relevant to a semantic search query.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            query: {
+                                type: "string",
+                                description: "A semantic search query to find relevant related posts."
+                            },
+                            limit: {
+                                type: "integer",
+                                description: "Number of posts to return. Optional, default 10."
+                            },
+                            from_date: {
+                                type: "string",
+                                description: "Filter to receive posts from this date onwards. Format: YYYY-MM-DD."
+                            },
+                            to_date: {
+                                type: "string",
+                                description: "Filter to receive posts up to this date. Format: YYYY-MM-DD."
+                            }
+                        },
+                        required: ["query"]
+                    }
+                }
+            },
+            {
+                type: "function",
+                function: {
+                    name: "browse_page",
+                    description: "Use this tool to request content from any website URL. It will fetch the page and process it via the LLM summarizer.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            url: {
+                                type: "string",
+                                description: "The URL of the webpage to browse."
+                            },
+                            instructions: {
+                                type: "string",
+                                description: "The instructions guiding the summarizer on what to look for."
+                            }
+                        },
+                        required: ["url", "instructions"]
+                    }
+                }
+            }
+        ];
+        // 全局变量
+        let currentUser = null;
+        let conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        let currentConversationId = null;
+        let conversation = [];
+        let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+        let isGenerating = false;
+        let abortController = null;
+        let editingMessageIndex = -1;
+        let sidebarOpen = false;
+        const MAX_STORAGE = 1024 * 1024 * 1024; // 1GB 限制
+        const MAX_CONTEXT_TOKENS = 128000;
+        // DOM 元素
+        const loginContainer = document.getElementById('loginContainer');
+        const appContainer = document.getElementById('appContainer');
+        const usernameInput = document.getElementById('usernameInput');
+        const userInput = document.getElementById('userInput');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const historyList = document.getElementById('historyList');
+        const historySearch = document.getElementById('historySearch');
+        const searchResults = document.getElementById('searchResults');
+        const sendBtn = document.getElementById('sendBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const loading = document.getElementById('loading');
+        const historySidebar = document.getElementById('historySidebar');
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const tokenStatus = document.getElementById('tokenStatus');
+        const fileModal = document.getElementById('fileModal');
+        const fileList = document.getElementById('fileList');
+        const modelSelector = document.getElementById('modelSelector');
+        // 初始化
+        function init() {
+            // 设置背景（美化：添加错误处理和重试）
+            if (window.setBackgroundImage) {
+                try {
+                    window.setBackgroundImage();
+                } catch (e) {
+                    console.log('背景加载失败，使用 fallback');
+                    document.body.style.backgroundImage = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; // 默认渐变 fallback
+                }
+                // 重试机制
+                setTimeout(() => {
+                    if (!document.body.style.backgroundImage.includes('url(')) {
+                        window.setBackgroundImage();
+                    }
+                }, 2000);
+            } else {
+                document.body.style.backgroundImage = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; // 默认渐变
+            }
+            // 检查登录状态
+            currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                showApp();
+                newConversation();
+                renderHistory();
+                renderFileList();
+            } else {
+                showLogin();
+            }
+            // 调整移动端侧边栏
+            if (window.innerWidth <= 768) {
+                historySidebar.classList.add('mobile');
+            }
+            // 恢复模型选择
+            const savedModel = localStorage.getItem('currentModel') || 'grok-3';
+            currentModel = savedModel;
+            modelSelector.value = savedModel;
+            // 移动端：添加键盘监听，调整输入框
+            if ('visualViewport' in window) {
+                window.visualViewport.addEventListener('resize', () => {
+                    if (document.activeElement === userInput) {
+                        document.body.style.height = `${window.visualViewport.height}px`;
+                    }
+                });
+            }
+            // 错误边界
+            window.addEventListener('error', (e) => {
+                console.error('全局错误：', e.error);
+                addMessage('系统出错，请刷新重试。', false);
+            });
+            // PWA 支持
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+        }
+        // 切换模型
+        function changeModel(model) {
+            currentModel = model;
+            localStorage.setItem('currentModel', model);
+            console.log(`模型切换为: ${model}`);
+        }
+        // 登录
+        function login() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                currentUser = username;
+                localStorage.setItem('currentUser', username);
+                showApp();
+                newConversation();
+            } else {
+                alert('请输入用户名');
+            }
+        }
+        // 登出
+        function logout() {
+            if (confirm('确定登出吗？')) {
+                localStorage.removeItem('currentUser');
+                currentUser = null;
+                showLogin();
+            }
+        }
+        // 显示应用
+        function showApp() {
+            loginContainer.style.display = 'none';
+            appContainer.style.display = 'flex';
+            document.querySelector('.logout-btn').textContent = `退出 (${currentUser})`;
+        }
+        // 显示登录
+        function showLogin() {
+            appContainer.style.display = 'none';
+            loginContainer.style.display = 'flex';
+            usernameInput.value = '';
+        }
+        // 新对话
+        function newConversation() {
+            const newConv = {
+                id: Date.now().toString(),
+                title: '新对话',
+                messages: []
+            };
+            conversations.unshift(newConv);
+            currentConversationId = newConv.id;
+            conversation = newConv.messages;
+            saveUserData();
+            renderHistory();
+            renderMessages();
+            updateTokenStatus(estimateTokens(newConv.messages.map(m => m.content || '').join('\n')));
+            if (sidebarOpen) toggleSidebar();
+        }
+        // 加载会话
+        function loadConversation(id) {
+            loading.style.display = 'none';
+            const conv = conversations.find(c => c.id === id);
+            if (conv) {
+                currentConversationId = id;
+                conversation = [...conv.messages];
+                renderHistory();
+                renderMessages();
+                const totalTokens = conversation.reduce((sum, msg) => sum + estimateTokens(msg.content || ''), 0);
+                updateTokenStatus(totalTokens);
+                if (sidebarOpen) toggleSidebar();
+            }
+        }
+        // 删除对话
+        function deleteConversation(id) {
+            if (confirm('确定删除这个对话记录吗？')) {
+                conversations = conversations.filter(c => c.id !== id);
+                if (currentConversationId === id) {
+                    currentConversationId = null;
+                    if (conversations.length > 0) {
+                        loadConversation(conversations[0].id);
+                    } else {
+                        newConversation();
+                    }
+                }
+                saveUserData();
+                renderHistory();
+            }
+        }
+        // 保存会话
+        function saveCurrentConversation() {
+            if (currentConversationId) {
+                const conv = conversations.find(c => c.id === currentConversationId);
+                if (conv) {
+                    conv.messages = [...conversation];
+                    const firstUserMsg = conv.messages.find(m => m.role === 'user');
+                    if (firstUserMsg && conv.title === '新对话') {
+                        conv.title = firstUserMsg.content.substring(0, 20) + '...';
+                    }
+                    saveUserData();
+                    renderHistory();
+                }
+            }
+        }
+        // 渲染历史列表
+        function renderHistory(filtered = conversations) {
+            historyList.innerHTML = '';
+            filtered.forEach(conv => {
+                const li = document.createElement('li');
+                li.className = `history-item ${conv.id === currentConversationId ? 'active' : ''}`;
+                li.innerHTML = `
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="title">${conv.title}</div>
+                        <div class="preview">${conv.messages[conv.messages.length - 1]?.content.substring(0, 30)}...</div>
+                    </div>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" aria-label="Delete conversation">×</button>
+                `;
+                li.onclick = (e) => {
+                    if (e.target.classList.contains('delete-btn')) return;
+                    loadConversation(conv.id);
+                };
+                historyList.appendChild(li);
+            });
+        }
+        // 搜索历史（优化：结果独立显示）
+        function searchHistory() {
+            const query = historySearch.value.toLowerCase();
+            if (query === '') {
+                searchResults.style.display = 'none';
+                renderHistory();
+                return;
+            }
+            const filtered = conversations.filter(conv =>
+                conv.title.toLowerCase().includes(query) ||
+                conv.messages.some(msg => (msg.content || '').toLowerCase().includes(query))
+            );
+            renderHistory(filtered);
+            searchResults.innerHTML = filtered.slice(0, 5).map(conv =>
+                `<div class="search-result-item" onclick="loadConversation('${conv.id}'); searchResults.style.display='none';">${conv.title}</div>`
+            ).join('');
+            searchResults.style.display = filtered.length > 0 ? 'block' : 'none';
+        }
+        // 渲染当前消息
+        function renderMessages() {
+            messagesContainer.innerHTML = '';
+            conversation.forEach((msg, index) => {
+                addMessage(msg.content || '', msg.role === 'user', msg.attachments || [], index);
+            });
+            debounceHighlight(); // 批量高亮
+            messagesContainer.scrollTop = messagesContainer.scrollHeight; // 自动滚动到底部
+        }
+        // 添加消息（修复：统一转义所有内容，确保安全渲染）
+        function addMessage(content, isUser = false, attachments = [], index = -1) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            messageDiv.dataset.index = index;
+            messageDiv.setAttribute('role', 'log'); // 无障碍
+           
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.setAttribute('role', isUser ? 'user-message' : 'assistant-message');
+           
+            // 核心修复：所有内容先转义，再解析Markdown
+            const safeContent = parseMarkdown(escapeHtml(content));
+            bubble.innerHTML = safeContent;
+           
+            attachments.forEach(attach => {
+                if (attach.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = attach.data;
+                    img.className = 'uploaded-image';
+                    img.alt = '上传图片';
+                    img.loading = 'lazy'; // 延迟加载，优化性能
+                    bubble.appendChild(img);
+                } else if (attach.type === 'file') {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'uploaded-file';
+                    fileDiv.innerHTML = `<strong>${escapeHtml(attach.name)}</strong><br>${escapeHtml((attach.content || '').substring(0, 100))}...`; // 转义附件
+                    bubble.appendChild(fileDiv);
+                }
+            });
+           
+            // 新增：添加消息操作按钮（仅用户消息可编辑）
+            if (isUser && index !== -1) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                actionsDiv.innerHTML = `
+                    <button class="message-action-btn" onclick="editMessage(${index}); event.stopPropagation();" title="编辑" aria-label="Edit message">✏️</button>
+                `;
+                messageDiv.appendChild(actionsDiv);
+            }
+           
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        // 新增：编辑消息
+        function editMessage(index) {
+            if (editingMessageIndex !== -1) {
+                alert('请先完成当前编辑操作');
+                return;
+            }
+            if (index < 0 || !conversation[index]) {
+                alert('无效的消息索引');
+                return;
+            }
+            editingMessageIndex = index;
+            const message = conversation[index];
+            const messageDiv = messagesContainer.querySelector(`.message[data-index="${index}"]`);
+            const bubble = messageDiv.querySelector('.message-bubble');
+           
+            // 创建编辑区域
+            const editArea = document.createElement('div');
+            editArea.className = 'message-edit-area';
+            editArea.innerHTML = `
+                <textarea class="message-edit-textarea" aria-label="Edit message text">${message.content || ''}</textarea>
+                <div class="edit-actions">
+                    <button class="edit-btn edit-cancel" onclick="cancelEdit()" aria-label="Cancel edit">取消</button>
+                    <button class="edit-btn edit-save" onclick="saveEdit()" aria-label="Save edit">保存</button>
+                </div>
+            `;
+           
+            // 替换消息内容
+            bubble.style.display = 'none';
+            messageDiv.appendChild(editArea);
+            editArea.querySelector('textarea').focus(); // 焦点到编辑框
+        }
+        // 新增：取消编辑
+        function cancelEdit() {
+            if (editingMessageIndex === -1) return;
+           
+            const messageDiv = messagesContainer.querySelector(`.message[data-index="${editingMessageIndex}"]`);
+            const bubble = messageDiv.querySelector('.message-bubble');
+            const editArea = messageDiv.querySelector('.message-edit-area');
+           
+            bubble.style.display = 'block';
+            editArea.remove();
+            editingMessageIndex = -1;
+        }
+        // 新增：保存编辑
+        function saveEdit() {
+            if (editingMessageIndex === -1) return;
+           
+            const messageDiv = messagesContainer.querySelector(`.message[data-index="${editingMessageIndex}"]`);
+            const editArea = messageDiv.querySelector('.message-edit-area');
+            const textarea = editArea.querySelector('.message-edit-textarea');
+            const newContent = textarea.value.trim();
+           
+            if (!newContent) {
+                alert('消息内容不能为空');
+                return;
+            }
+           
+            // 更新消息内容
+            conversation[editingMessageIndex].content = newContent;
+            saveCurrentConversation();
+           
+            // 重新渲染消息
+            renderMessages();
+            editingMessageIndex = -1;
+        }
+        // 文件上传处理（集成 IndexedDB，检查总容量，支持 PDF 解析，以及各种代码文件）
+        async function handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            let totalNewSize = 0;
+            for (const file of files) {
+                if (file.size > 50 * 1024 * 1024) {  // 50MB 限
+                    alert(`${file.name} 太大 (>50MB)，跳过。`);
+                    continue;
+                }
+                totalNewSize += file.size;
+            }
+            const currentTotal = uploadedFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+            if (currentTotal + totalNewSize > MAX_STORAGE) {
+                alert(`上传失败：总容量超过1GB。当前使用 ${(currentTotal / (1024*1024*1024)).toFixed(2)}GB`);
+                return;
+            }
+            for (const file of files) {
+                if (file.size > 50 * 1024 * 1024) continue; // 跳过大文件
+                const fileId = Date.now() + Math.random();
+                let content = '';
+                let type = file.type.split('/')[0];
+                let data = '';
+                if (type === 'image') {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        data = e.target.result;
+                        const fileObj = { id: fileId, name: file.name, type, data, size: file.size, content };
+                        await addFileToDB(fileObj);
+                        const attachments = [{ type: 'image', data, name: file.name }];
+                        addMessage('', true, attachments); // 使用修复后的addMessage
+                        conversation.push({ role: 'user', content: `[上传了图片: ${file.name}]`, attachments });
+                        saveCurrentConversation();
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.name.match(/\.(txt|css|py|html|c|cpp|java|js|php|rb|swift)$/i)) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        content = e.target.result;
+                        let fileType = 'txt';
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        if (['css'].includes(ext)) fileType = 'css';
+                        else if (['py'].includes(ext)) fileType = 'py';
+                        else if (['html'].includes(ext)) fileType = 'html';
+                        else if (['c'].includes(ext)) fileType = 'c';
+                        else if (['cpp'].includes(ext)) fileType = 'cpp';
+                        else if (['java'].includes(ext)) fileType = 'java';
+                        else if (['js'].includes(ext)) fileType = 'js';
+                        else if (['php'].includes(ext)) fileType = 'php';
+                        else if (['rb'].includes(ext)) fileType = 'rb';
+                        else if (['swift'].includes(ext)) fileType = 'swift';
+                        const fileObj = { id: fileId, name: file.name, type: fileType, content, size: file.size };
+                        await addFileToDB(fileObj);
+                        const fullMsg = `[上传了文件: ${file.name}]\n${content.substring(0, 200)}...`;
+                        addMessage(fullMsg, true, [{ type: 'file', name: file.name, content: content.substring(0, 100) }]); // 修复
+                        conversation.push({ role: 'user', content: fullMsg, attachments: [{ type: 'file', name: file.name, content }] });
+                        saveCurrentConversation();
+                    };
+                    reader.readAsText(file);
+                } else if (file.name.endsWith('.pdf')) {
+                    // 使用 pdf.js 解析
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+                        }
+                        content = fullText.substring(0, 2000); // 限制长度
+                        const fileObj = { id: fileId, name: file.name, type: 'pdf', content, size: file.size };
+                        await addFileToDB(fileObj);
+                        const size = (file.size / 1024).toFixed(1) + ' KB';
+                        const fullMsg = `[上传了 PDF: ${file.name}] (大小: ${size})\n内容摘要: ${content.substring(0, 200)}...`;
+                        addMessage(fullMsg, true, [{ type: 'file', name: file.name, content }]); // 修复
+                        conversation.push({ role: 'user', content: fullMsg, attachments: [{ type: 'file', name: file.name, content }] });
+                        saveCurrentConversation();
+                    } catch (e) {
+                        alert(`PDF 解析失败: ${file.name}`);
+                    }
+                }
+            }
+            event.target.value = ''; // 清空输入
+        }
+        // 工具执行：增强支持真实 web_search（修改：使用 SerpAPI 代理）和 x_keyword_search
+        async function callTool(toolName, toolArgs) {
+            switch (toolName) {
+                case 'web_search':
+                    const query = toolArgs.query;
+                    const numResults = Math.min(toolArgs.num_results || 10, 30); // 限制 max 30
+                    try {
+                        // 修改：使用后端 SerpAPI 代理（更可靠，避免 CORS）
+                        const res = await fetch(`${API_URL}?action=search&q=${encodeURIComponent(query)}&num=${numResults}`);
+                        if (!res.ok) throw new Error(`搜索失败: HTTP ${res.status}`);
+                        const data = await res.json();
+                        if (data.error) throw new Error(data.error);
+                        let output = `**搜索结果 for "${query}" (前 ${data.count} 个，使用 SerpAPI/Google)：**\n\n`;
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach((result, idx) => {
+                                const title = result.title || '无标题';
+                                const link = result.link || '#';
+                                const snippet = result.snippet || '无摘要';
+                                output += `${idx + 1}. **${title}**  \n${snippet}  \n[来源](${link})  \n\n`;
+                            });
+                        } else {
+                            output += '未找到相关结果。请尝试其他查询或更精确的关键词。';
+                        }
+                        return output;
+                    } catch (error) {
+                        console.error('SerpAPI search error:', error);
+                        return `**搜索 "${query}" 出错：** ${error.message}。请检查网络或稍后重试（SerpAPI 可能限流）。`;
+                    }
+                case 'x_keyword_search':
+                    const xQuery = toolArgs.query;
+                    const xLimit = Math.min(toolArgs.limit || 10, 100); // X API max 100
+                    const xMode = (toolArgs.mode || 'Latest').toLowerCase(); // 'top' or 'latest'
+                    if (X_BEARER_TOKEN === 'YOUR_X_API_BEARER_TOKEN_HERE') {
+                        // 回退到模拟如果未配置 token
+                        return `**X Keyword Search Results for "${xQuery}" (Mode: ${xMode}, Limit: ${xLimit})**\n\n` +
+                               `- Mock Post 1: This is a simulated post about ${xQuery}. [Link](https://x.com/mock1)\n` +
+                               `- Mock Post 2: Another simulated result from X. [Link](https://x.com/mock2)\n` +
+                               `Note: 请配置 X_BEARER_TOKEN 以启用真实搜索。`;
+                    }
+                    // 真实 X API v2 调用（recent search，最近7天）
+                    const endpoint = 'https://api.twitter.com/2/tweets/search/recent'; // 注意：2025年仍为 twitter.com，但实际为 x.com
+                    const params = {
+                        query: xQuery,
+                        max_results: xLimit,
+                        tweet_fields: 'created_at,author_id,public_metrics',
+                        expansions: 'author_id'
+                    };
+                    if (xMode === 'top') {
+                        // 对于 'top'，使用 full-archive search（需 Pro/Enterprise），这里简化为 recent + sort by engagement
+                        params['sort_order'] = 'relevancy'; // 近似 top
+                    }
+                    try {
+                        const response = await axios.get(endpoint, {
+                            headers: {
+                                'Authorization': `Bearer ${X_BEARER_TOKEN}`
+                            },
+                            params: params
+                        });
+                        const data = response.data;
+                        let result = `**X Keyword Search Results for "${xQuery}" (Mode: ${xMode === 'top' ? 'Top' : 'Latest'}, Limit: ${xLimit})**\n\n`;
+                        if (data.data && data.data.length > 0) {
+                            data.data.slice(0, xLimit).forEach(tweet => {
+                                const author = data.includes?.users?.find(u => u.id === tweet.author_id) || { username: 'Unknown' };
+                                result += `- **${tweet.text.substring(0, 100)}...** by @${author.username} (${new Date(tweet.created_at).toLocaleString('zh-CN')})\n Likes: ${tweet.public_metrics?.like_count || 0}, Retweets: ${tweet.public_metrics?.retweet_count || 0}\n [Link](https://x.com/${author.username}/status/${tweet.id})\n\n`;
+                            });
+                        } else {
+                            result += 'No results found.';
+                        }
+                        return result;
+                    } catch (error) {
+                        console.error('X API Error:', error);
+                        return `Error performing X keyword search for "${xQuery}": ${error.response?.data?.detail || error.message}. 请检查 Bearer Token 和 API 访问权限。`;
+                    }
+                case 'x_semantic_search':
+                    const semanticQuery = toolArgs.query;
+                    const semanticLimit = toolArgs.limit || 10;
+                    const fromDate = toolArgs.from_date || '';
+                    const toDate = toolArgs.to_date || '';
+                    // Simulate results
+                    return `**X Semantic Search Results for "${semanticQuery}" (Limit: ${semanticLimit}${fromDate ? `, From: ${fromDate}` : ''}${toDate ? `, To: ${toDate}` : ''})**\n\n` +
+                           `- Mock Semantic Post 1: Relevant to ${semanticQuery} semantically. [Link](https://x.com/semantic1)\n` +
+                           `- Mock Semantic Post 2: Another relevant post. [Link](https://x.com/semantic2)\n` +
+                           `Note: In production, use xAI or Twitter semantic search API.`;
+                case 'browse_page':
+                    const browseUrl = toolArgs.url;
+                    const instructions = toolArgs.instructions;
+                    // Mock for demo (in production, fetch and summarize with LLM)
+                    return `**Browsed Page: ${browseUrl}**\n**Instructions:** ${instructions}\n\n` +
+                           `Mock Summary: This is a simulated summary based on the instructions for the page. Key points include relevant content from ${browseUrl}.\n` +
+                           `Note: In production, fetch the page and use an LLM to summarize per instructions.`;
+                default:
+                    return 'Unknown tool called.';
+            }
+        }
+        // 构建系统提示（修改：添加优先使用中文回复的指令）
+        function buildSystemPrompt(userInput = null) {
+            const fileContents = getAllFileContents();
+            const currentDate = new Date().toLocaleDateString('zh-CN'); // 获取当前日期（中文格式）
+            let systemPromptContent = `你是由 xAI 构建的 RiverXILEE AI 助手。结合上传的文件内容（如下）和你的知识回答问题。**实时联网搜索已集成：对于实时信息、新闻、事实、搜索请求，必须优先使用SERPAPI来搜索，如果搜索到了就不需要再使用 web_search、x_keyword_search、x_semantic_search 或 browse_page 工具获取最新数据，并使用结果中的链接引用来源（使用 Markdown [文本](URL) 格式）。** 输出结构清晰：代码用 \`\`\` 块包裹（指定 language），文字用自然段落，链接自动渲染。如果用户输入是代码/HTML，返回 Markdown 代码块 + 简短解释（除非指定"纯代码"）。如果是搜索/故事/角色等非技术内容，用流畅叙述回复，提供详细解释、背景和链接。其他内容正常回复，使用文件知识，提供详细答案。**优先使用中文回复所有消息，除非用户明确指定使用其他语言。**当前日期是：${currentDate}。在每次回答前，检查并参考这个日期，确保回复与当前时间相关（如新闻、事件等），如果问题涉及时间敏感内容，请优先使用搜索工具验证最新信息。**`;
+            if (userInput) {
+                const input = userInput.trim();
+                const isCodeInput = input.startsWith('<!DOCTYPE') || input.startsWith('<html') || input.includes('```') || /<[^>]+>/.test(input.substring(0, 100));
+                const isGeneralQuery = input.toLowerCase().includes('搜索') || input.toLowerCase().includes('查询') || (!isCodeInput && (input.includes('角色') || input.includes('故事') || input.includes('知识')));
+                if (isCodeInput) {
+                    systemPromptContent += `\n\n用户输入看起来像代码，请返回其 Markdown 格式版本 + 简要说明。`;
+                } else if (isGeneralQuery) {
+                    systemPromptContent += `\n\n用户的查询是通用知识或搜索，请以友好、自然的对话方式回复，直接用段落描述，并优先使用 web_search 或 x_keyword_search 工具。`;
+                }
+            }
+            systemPromptContent += `\n\n文件内容：\n${fileContents}`;
+            return { role: 'system', content: systemPromptContent };
+        }
+        // 流式响应生成（支持工具调用） - 优化版：增强错误处理、并行工具、fallback 显示
+        async function streamResponse(conversation, messageDiv, bubble, systemPrompt) {
+            // 构建 API 消息（保留最近消息）
+            let messagesForAPI = [systemPrompt];
+            let totalTokens = estimateTokens(systemPrompt.content);
+            let contextMessages = [];
+            for (let i = conversation.length - 1; i >= 0; i--) {
+                const msg = conversation[i];
+                const msgTokens = estimateTokens(msg.content || '');
+                if (totalTokens + msgTokens > MAX_CONTEXT_TOKENS) {
+                    break;
+                }
+                contextMessages.unshift(msg);
+                totalTokens += msgTokens;
+            }
+            messagesForAPI = messagesForAPI.concat(contextMessages);
+            console.log(`上下文：保留了 ${contextMessages.length} 条最近消息，总 tokens 约 ${totalTokens}`);
+
+            // 初始化 AbortController
+            abortController = new AbortController();
+            // 累积 assistant 消息
+            let assistantMessage = {
+                role: 'assistant',
+                content: '',
+                tool_calls: []
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: currentModel,
+                        messages: messagesForAPI,
+                        tools: tools, // 启用多个工具
+                        stream: true,
+                        max_tokens: 4096  // 增加到 4096，避免截断
+                    }),
+                    signal: abortController.signal
+                });
+                if (!response.ok) {
+                    throw new Error(`API 错误: ${response.status} - ${response.statusText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let hasContent = false;  // 新增：追踪是否有内容生成
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    if (abortController.signal.aborted) {
+                        console.log('流式响应已中断');
+                        break;
+                    }
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.replace('data: ', '').trim();
+                            if (data === '[DONE]') break;
+                            try {
+                                const parsed = JSON.parse(data);
+                                const delta = parsed.choices[0]?.delta;
+                                if (!delta) continue;
+                                // 累积内容
+                                if (delta.content) {
+                                    assistantMessage.content += delta.content;
+                                    hasContent = true;
+                                    // 实时更新 UI
+                                    if (assistantMessage.content.trim()) {
+                                        const safeContent = parseMarkdown(escapeHtml(assistantMessage.content));
+                                        bubble.innerHTML = safeContent;
+                                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                        debounceHighlight();
+                                    }
+                                }
+                                // 累积工具调用
+                                if (delta.tool_calls) {
+                                    for (const tcDelta of delta.tool_calls) {
+                                        const index = tcDelta.index;
+                                        while (assistantMessage.tool_calls.length <= index) {
+                                            assistantMessage.tool_calls.push({
+                                                id: `call_${Date.now()}_${assistantMessage.tool_calls.length}`,
+                                                type: 'function',
+                                                function: { name: '', arguments: '' }
+                                            });
+                                        }
+                                        const tc = assistantMessage.tool_calls[index];
+                                        if (tcDelta.function?.name) {
+                                            tc.function.name += tcDelta.function.name;
+                                        }
+                                        if (tcDelta.function?.arguments) {
+                                            tc.function.arguments += tcDelta.function.arguments;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('解析流数据错误:', e, 'Raw data:', data);
+                            }
+                        }
+                    }
+                }
+
+                // Fallback: 如果无内容，显示默认提示
+                if (!hasContent && !assistantMessage.tool_calls.length) {
+                    assistantMessage.content = '抱歉，我暂时无法生成响应。请稍后重试。';
+                }
+
+                // 处理响应
+                if (assistantMessage.tool_calls.length > 0) {
+                    console.log('检测到工具调用:', assistantMessage.tool_calls.map(tc => tc.function.name).join(', '));
+                    // 更新 UI 为工具执行中
+                    bubble.innerHTML = `<div class="thinking-text">🔍 执行工具: ${assistantMessage.tool_calls.map(tc => tc.function.name).join(', ')}...</div>`;
+                    // 添加工具调用消息到对话
+                    conversation.push(assistantMessage);
+
+                    // 并行执行工具（优化：Promise.all 减少延迟）
+                    const toolPromises = assistantMessage.tool_calls.map(async (tc) => {
+                        try {
+                            const args = JSON.parse(tc.function.arguments);
+                            const result = await callTool(tc.function.name, args);
+                            return {
+                                role: 'tool',
+                                tool_call_id: tc.id,
+                                content: result
+                            };
+                        } catch (e) {
+                            console.error(`工具 ${tc.function.name} 执行失败:`, e);
+                            return {
+                                role: 'tool',
+                                tool_call_id: tc.id,
+                                content: `工具执行错误: ${e.message}`
+                            };
+                        }
+                    });
+
+                    const toolResults = await Promise.all(toolPromises);
+                    toolResults.forEach(result => conversation.push(result));
+
+                    saveCurrentConversation();
+                    updateTokenStatus(conversation.reduce((sum, m) => sum + estimateTokens(m.content || ''), 0));
+
+                    // 创建新消息泡泡用于最终响应
+                    const newMessageDiv = document.createElement('div');
+                    newMessageDiv.className = 'message ai';
+                    const newBubble = document.createElement('div');
+                    newBubble.className = 'message-bubble typing';
+                    newBubble.innerHTML = '<div class="thinking-text">基于工具结果生成响应...</div>';
+                    newMessageDiv.appendChild(newBubble);
+                    messagesContainer.appendChild(newMessageDiv);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                    // 递归生成最终响应（添加 try-catch）
+                    try {
+                        await streamResponse(conversation, newMessageDiv, newBubble, systemPrompt);
+                        // 成功后移除临时工具 DIV
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    } catch (recursionError) {
+                        console.error('递归生成失败，回退显示:', recursionError);
+                        // 回退：更新新泡泡为错误，并保留临时 DIV
+                        newBubble.classList.remove('typing');
+                        newBubble.innerHTML = parseMarkdown(escapeHtml(`工具执行后生成响应失败: ${recursionError.message}。部分结果: ${toolResults[0]?.content?.substring(0, 200) || '无'}`));
+                        // 不移除 messageDiv，显示工具提示作为 fallback
+                    }
+                } else {
+                    // 正常响应（无工具）
+                    console.log('正常响应生成，内容长度:', assistantMessage.content.length);
+                    bubble.classList.remove('typing');
+                    if (assistantMessage.content.trim()) {
+                        const safeContent = parseMarkdown(escapeHtml(assistantMessage.content));
+                        bubble.innerHTML = safeContent;
+                        debounceHighlight();
+                    } else {
+                        bubble.innerHTML = '<div class="thinking-text">响应为空，请重试。</div>';  // Fallback
+                    }
+                    conversation.push({ role: 'assistant', content: assistantMessage.content });
+                    saveCurrentConversation();
+                    updateTokenStatus(conversation.reduce((sum, m) => sum + estimateTokens(m.content || ''), 0));
+                }
+            } catch (error) {
+                console.error('streamResponse 整体错误:', error);
+                if (error.name === 'AbortError') {
+                    console.log('用户停止了生成');
+                    bubble.classList.remove('typing');
+                    if (assistantMessage.content.trim()) {
+                        const safeReply = parseMarkdown(escapeHtml(assistantMessage.content + ' [用户停止生成]'));
+                        bubble.innerHTML = safeReply;
+                        conversation.push({ role: 'assistant', content: assistantMessage.content + ' [用户停止生成]' });
+                        saveCurrentConversation();
+                    }
+                    return;
+                }
+                const errorMsg = `抱歉，生成响应时出错：${error.message}。请检查网络或 API 配置。😅`;
+                bubble.classList.remove('typing');
+                bubble.innerHTML = parseMarkdown(escapeHtml(errorMsg));
+                conversation.push({ role: 'assistant', content: errorMsg });
+                saveCurrentConversation();
+            } finally {
+                isGenerating = false;
+                stopBtn.style.display = 'none';
+                sendBtn.disabled = false;  // 重新启用发送按钮
+            }
+        }
+        // 发送消息（启动流式响应）
+        async function sendMessage() {
+            let input = userInput.value.trim();
+            if (!input) return;
+            // 添加用户消息
+            addMessage(input, true);
+            conversation.push({ role: 'user', content: input });
+            saveCurrentConversation();
+            userInput.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            // 构建系统提示
+            const systemPrompt = buildSystemPrompt(input);
+            // 创建 AI 响应泡泡
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble typing';
+            bubble.innerHTML = '<div class="thinking-text">Thinking about the user\'s request...</div>';
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            // 开始生成
+            isGenerating = true;
+            stopBtn.style.display = 'inline-block';
+            sendBtn.disabled = true;  // 禁用发送按钮
+            await streamResponse(conversation, messageDiv, bubble, systemPrompt);
+        }
+        // 停止生成
+        function stopGeneration() {
+            if (abortController) {
+                abortController.abort();
+            }
+        }
+        // 修改：处理回车键发送（支持 Shift+Enter 换行）
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // 防止默认换行
+                sendMessage();
+            }
+            // Shift+Enter 允许换行
+        }
+        // 更新 Token 状态
+        function updateTokenStatus(tokens) {
+            tokenStatus.textContent = `Tokens: ${tokens.toLocaleString()}`;
+        }
+        // 估算 Tokens（简单估算，1 token ≈ 4 chars）
+        function estimateTokens(text) {
+            return Math.ceil((text || '').length / 4);
+        }
+        // 保存用户数据
+        function saveUserData() {
+            if (currentUser) {
+                const userData = {
+                    conversations: conversations,
+                    uploadedFiles: uploadedFiles
+                };
+                localStorage.setItem(`userData_${currentUser}`, JSON.stringify(userData));
+            }
+        }
+        // 加载用户数据
+        function loadUserData() {
+            if (currentUser) {
+                const userDataStr = localStorage.getItem(`userData_${currentUser}`);
+                if (userDataStr) {
+                    const userData = JSON.parse(userDataStr);
+                    conversations = userData.conversations || [];
+                    uploadedFiles = userData.uploadedFiles || [];
+                }
+            }
+        }
+        // 切换主题
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            // 切换高亮主题
+            const hljsLight = document.getElementById('hljs-light');
+            const hljsDark = document.getElementById('hljs-dark');
+            if (newTheme === 'dark') {
+                hljsLight.disabled = true;
+                hljsDark.disabled = false;
+            } else {
+                hljsLight.disabled = false;
+                hljsDark.disabled = true;
+            }
+            // 更新背景
+            if (window.setBackgroundImage) {
+                window.setBackgroundImage();
+            }
+        }
+        // 切换侧边栏（移动端：添加手势关闭）
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            if (window.innerWidth <= 768) {
+                historySidebar.classList.toggle('open', sidebarOpen);
+                // 添加蒙层关闭
+                if (sidebarOpen) {
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;';
+                    overlay.onclick = toggleSidebar;
+                    document.body.appendChild(overlay);
+                    historySidebar.overlay = overlay;
+                } else if (historySidebar.overlay) {
+                    document.body.removeChild(historySidebar.overlay);
+                }
+            }
+        }
+        // 文件管理
+        function openFileModal() {
+            renderFileList();
+            fileModal.style.display = 'block';
+        }
+        function closeFileModal() {
+            fileModal.style.display = 'none';
+        }
+        async function renderFileList() {
+            fileList.innerHTML = '';
+            uploadedFiles.forEach(file => {
+                const li = document.createElement('li');
+                li.className = 'file-item';
+                li.innerHTML = `
+                    <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                    <button class="file-delete" onclick="deleteFile('${file.id}')" aria-label="Delete file">×</button>
+                `;
+                fileList.appendChild(li);
+            });
+        }
+        async function deleteFile(id) {
+            if (confirm('确定删除这个文件吗？')) {
+                uploadedFiles = uploadedFiles.filter(f => f.id !== id);
+                saveUserData();
+                renderFileList();
+            }
+        }
+        // IndexedDB 操作（简化，使用 localStorage 作为 fallback）
+        async function addFileToDB(fileObj) {
+            uploadedFiles.push(fileObj);
+            saveUserData();
+        }
+        async function getAllFileContents() {
+            return uploadedFiles.map(f => `${f.name}:\n${f.content || ''}\n`).join('\n');
+        }
+        // Markdown 解析（简化，使用 innerHTML 安全渲染）
+        function parseMarkdown(text) {
+            // 简单 Markdown 到 HTML 转换
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+            text = text.replace(/\n/g, '<br>');
+            // 代码块
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                const highlighted = hljs.highlight(code, { language: lang || 'plaintext' }).value;
+                return `<pre><code class="hljs ${lang || ''}">${highlighted}</code></pre>`;
+            });
+            // 链接
+            text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color: var(--accent-pink);"> $1</a>');
+            return text;
+        }
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        // 高亮代码（防抖）
+        function debounceHighlight() {
+            clearTimeout(window.highlightTimeout);
+            window.highlightTimeout = setTimeout(() => {
+                document.querySelectorAll('pre code').forEach(block => {
+                    hljs.highlightElement(block);
+                });
+            }, 100);
+        }
+        // 新增：导入导出功能
+        function openImportExportModal() {
+            document.getElementById('importExportModal').style.display = 'block';
+            switchImportExportTab('export');
+        }
+        function closeImportExportModal() {
+            document.getElementById('importExportModal').style.display = 'none';
+        }
+        function switchImportExportTab(tab) {
+            // 更新标签状态
+            document.querySelectorAll('.import-export-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.import-export-tab[onclick="switchImportExportTab('${tab}')"]`).classList.add('active');
+           
+            // 更新内容显示
+            document.getElementById('exportTab').style.display = tab === 'export' ? 'block' : 'none';
+            document.getElementById('importTab').style.display = tab === 'import' ? 'block' : 'none';
+        }
+        function exportConversations() {
+            if (!currentUser) {
+                alert('请先登录');
+                return;
+            }
+           
+            const exportData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                user: currentUser,
+                conversations: conversations
+            };
+           
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+           
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `RiverXILee-AI-${currentUser}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+           
+            alert('对话数据导出成功！');
+        }
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            const importBtn = document.getElementById('importBtn');
+           
+            if (file) {
+                importBtn.disabled = false;
+            } else {
+                importBtn.disabled = true;
+            }
+        }
+        function importConversations() {
+            const fileInput = document.getElementById('importFileInput');
+            const file = fileInput.files[0];
+           
+            if (!file) {
+                alert('请选择要导入的文件');
+                return;
+            }
+           
+            if (!confirm('导入对话数据将覆盖当前用户的所有对话记录，确定要继续吗？')) {
+                return;
+            }
+           
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                   
+                    // 验证数据格式
+                    if (!importData.conversations || !Array.isArray(importData.conversations)) {
+                        throw new Error('无效的数据格式');
+                    }
+                   
+                    // 更新对话数据
+                    conversations = importData.conversations;
+                    saveUserData();
+                   
+                    // 重新加载对话
+                    if (conversations.length > 0) {
+                        loadConversation(conversations[0].id);
+                    } else {
+                        newConversation();
+                    }
+                   
+                    alert('对话数据导入成功！');
+                    closeImportExportModal();
+                } catch (error) {
+                    alert('导入失败：文件格式不正确或已损坏');
+                    console.error('导入错误:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+        // 页面加载时初始化
+        init();
+        // 加载用户数据
+        loadUserData();
+        // 主题恢复
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        // 新增：窗口大小变化监听，调整侧边栏状态
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && sidebarOpen) {
+                // 大屏时强制关闭抽屉
+                toggleSidebar();
+            }
+            if (window.innerWidth <= 768 && !historySidebar.classList.contains('mobile')) {
+                historySidebar.classList.add('mobile');
+            }
+            // 键盘弹出调整
+            if (window.innerHeight < window.screen.height - 150) { // 检测键盘
+                document.body.style.paddingBottom = '200px'; // 预留空间
+            } else {
+                document.body.style.paddingBottom = '0';
+            }
+        });
+        // 初始检查
+        window.dispatchEvent(new Event('resize'));
+    </script>
+    <script src="background.js"></script>
+</body>
+</html>
